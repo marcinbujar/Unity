@@ -1201,7 +1201,7 @@ void UnityBegin(void)
 int UnityEnd(void)
 {
 #ifdef JSON
-    UnityPrint("]");
+    UnityPrint("{}],");
     UNITY_PRINT_EOL;
     UnityPrint("\"summary\": {\"tests\": ");
     UnityPrintNumber(Unity.NumberOfTests);
