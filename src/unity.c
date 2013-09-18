@@ -17,16 +17,16 @@
 struct _Unity Unity = { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , { 0 } };
 
 #ifdef JSON
-const char* UnityStrNull     = "NULL";
+const char* UnityStrNull     = "null";
 const char* UnityStrSpacer   = ". ";
 const char* UnityStrExpected = ", \"expected\": ";
 const char* UnityStrWas      = ", \"actual\": ";
 const char* UnityStrTo       = " To ";
 const char* UnityStrElement  = ", \"element\": ";
-const char* UnityStrByte     = " Byte ";
-const char* UnityStrMemory   = " Memory Mismatch.";
+const char* UnityStrByte     = ", \"Byte\": ";
+const char* UnityStrMemory   = ", \"reason\": \"Memory Mismatch.\"";
 const char* UnityStrDelta    = ", \"reason\": \"Values Not Within Delta\"";
-const char* UnityStrPointless= " You Asked Me To Compare Nothing, Which Was Pointless.";
+const char* UnityStrPointless= ", \"reason\": \"You Asked Me To Compare Nothing, Which Was Pointless.\"";
 const char* UnityStrNullPointerForExpected= ", \"reason\": \"Expected pointer to be NULL\"";
 const char* UnityStrNullPointerForActual  = ", \"reason\": \"Actual pointer was NULL\"";
 const char* UnityStrInf      = "Infinity";
@@ -120,6 +120,9 @@ void UnityPrint(const char* string)
 //-----------------------------------------------
 void UnityPrintNumberByStyle(const _U_SINT number, const UNITY_DISPLAY_STYLE_T style)
 {
+#ifdef JSON
+    UnityPrint("\"");
+#endif
     if ((style & UNITY_DISPLAY_RANGE_INT) == UNITY_DISPLAY_RANGE_INT)
     {
         UnityPrintNumber(number);
@@ -132,6 +135,9 @@ void UnityPrintNumberByStyle(const _U_SINT number, const UNITY_DISPLAY_STYLE_T s
     {
         UnityPrintNumberHex((_U_UINT)number, (style & 0x000F) << 1);
     }
+#ifdef JSON
+    UnityPrint("\"");
+#endif
 }
 
 //-----------------------------------------------
@@ -221,6 +227,9 @@ void UnityPrintMask(const _U_UINT mask, const _U_UINT number)
     _U_UINT current_bit = (_U_UINT)1 << (UNITY_INT_WIDTH - 1);
     _US32 i;
 
+#ifdef JSON
+    UnityPrint("\"");
+#endif
     for (i = 0; i < UNITY_INT_WIDTH; i++)
     {
         if (current_bit & mask)
@@ -240,6 +249,9 @@ void UnityPrintMask(const _U_UINT mask, const _U_UINT number)
         }
         current_bit = current_bit >> 1;
     }
+#ifdef JSON
+    UnityPrint("\"");
+#endif
 }
 
 //-----------------------------------------------
@@ -334,14 +346,13 @@ void UnityAddMsgIfSpecified(const char* msg)
 #ifdef JSON
         UnityPrint(", \"message\": \"");
         UnityPrint(msg);
-        UnityPrint("\"}");
+        UnityPrint("\"");
 #else
         UnityPrint(UnityStrSpacer);
         UnityPrint(msg);
 #endif
     }
 #ifdef JSON
-    else
     UnityPrint("} },");
 #endif
 }
@@ -352,9 +363,17 @@ void UnityPrintExpectedAndActualStrings(const char* expected, const char* actual
     UnityPrint(UnityStrExpected);
     if (expected != NULL)
     {
+#ifdef JSON
+        UNITY_OUTPUT_CHAR('\"');
+#else
         UNITY_OUTPUT_CHAR('\'');
+#endif
         UnityPrint(expected);
+#ifdef JSON
+        UNITY_OUTPUT_CHAR('\"');
+#else
         UNITY_OUTPUT_CHAR('\'');
+#endif
     }
     else
     {
@@ -363,9 +382,17 @@ void UnityPrintExpectedAndActualStrings(const char* expected, const char* actual
     UnityPrint(UnityStrWas);
     if (actual != NULL)
     {
+#ifdef JSON
+        UNITY_OUTPUT_CHAR('\"');
+#else
         UNITY_OUTPUT_CHAR('\'');
+#endif
         UnityPrint(actual);
+#ifdef JSON
+        UNITY_OUTPUT_CHAR('\"');
+#else
         UNITY_OUTPUT_CHAR('\'');
+#endif
     }
     else
     {
@@ -937,9 +964,8 @@ void UnityAssertNumbersWithin( const _U_SINT delta,
         UnityTestResultsFailBegin(lineNumber);
         UnityPrint(UnityStrDelta);
 #ifdef JSON
-        UnityPrint(", \"delta\": \"");
+        UnityPrint(", \"delta\": ");
         UnityPrintNumberByStyle(delta, style);
-        UnityPrint("\", ");
 #else
         UnityPrintNumberByStyle(delta, style);
 #endif
@@ -1191,10 +1217,12 @@ void UnityBegin(void)
     Unity.TestIgnores = 0;
     Unity.CurrentTestFailed = 0;
     Unity.CurrentTestIgnored = 0;
+#ifdef JSON
     UnityPrint("{\"tests\": ");
     UNITY_PRINT_EOL;
     UnityPrint("[");
     UNITY_PRINT_EOL;
+#endif
 }
 
 //-----------------------------------------------
