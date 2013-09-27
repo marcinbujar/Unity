@@ -16,7 +16,7 @@
 
 struct _Unity Unity = { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , { 0 } };
 
-#ifdef JSON
+#ifdef UNITY_JSON
 const char* UnityStrNull     = "null";
 const char* UnityStrSpacer   = ". ";
 const char* UnityStrExpected = ", \"expected\": ";
@@ -120,7 +120,7 @@ void UnityPrint(const char* string)
 //-----------------------------------------------
 void UnityPrintNumberByStyle(const _U_SINT number, const UNITY_DISPLAY_STYLE_T style)
 {
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("\"");
 #endif
     if ((style & UNITY_DISPLAY_RANGE_INT) == UNITY_DISPLAY_RANGE_INT)
@@ -135,7 +135,7 @@ void UnityPrintNumberByStyle(const _U_SINT number, const UNITY_DISPLAY_STYLE_T s
     {
         UnityPrintNumberHex((_U_UINT)number, (style & 0x000F) << 1);
     }
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("\"");
 #endif
 }
@@ -227,7 +227,7 @@ void UnityPrintMask(const _U_UINT mask, const _U_UINT number)
     _U_UINT current_bit = (_U_UINT)1 << (UNITY_INT_WIDTH - 1);
     _US32 i;
 
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("\"");
 #endif
     for (i = 0; i < UNITY_INT_WIDTH; i++)
@@ -249,7 +249,7 @@ void UnityPrintMask(const _U_UINT mask, const _U_UINT number)
         }
         current_bit = current_bit >> 1;
     }
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("\"");
 #endif
 }
@@ -268,7 +268,7 @@ void UnityPrintFloat(_UF number)
 
 void UnityPrintFail(void)
 {
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("FAIL\"");
 #else
     UnityPrint("FAIL");
@@ -283,7 +283,7 @@ void UnityPrintOk(void)
 //-----------------------------------------------
 void UnityTestResultsBegin(const char* file, const UNITY_LINE_TYPE line)
 {
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("{\"");
     UnityPrint(Unity.CurrentTestName);
     UnityPrint("\"");
@@ -306,7 +306,7 @@ void UnityTestResultsBegin(const char* file, const UNITY_LINE_TYPE line)
 void UnityTestResultsFailBegin(const UNITY_LINE_TYPE line)
 {
     UnityTestResultsBegin(Unity.TestFile, line);
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("FAIL\"");
 #else
     UnityPrint("FAIL:");
@@ -324,7 +324,7 @@ void UnityConcludeTest(void)
     {
         UnityTestResultsBegin(Unity.TestFile, Unity.CurrentTestLineNumber);
         UnityPrint("PASS");
-#ifdef JSON
+#ifdef UNITY_JSON
         UnityPrint("\"} },");
 #endif
         UNITY_PRINT_EOL;
@@ -343,7 +343,7 @@ void UnityAddMsgIfSpecified(const char* msg)
 {
     if (msg)
     {
-#ifdef JSON
+#ifdef UNITY_JSON
         UnityPrint(", \"message\": \"");
         UnityPrint(msg);
         UnityPrint("\"");
@@ -352,7 +352,7 @@ void UnityAddMsgIfSpecified(const char* msg)
         UnityPrint(msg);
 #endif
     }
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("} },");
 #endif
 }
@@ -363,13 +363,13 @@ void UnityPrintExpectedAndActualStrings(const char* expected, const char* actual
     UnityPrint(UnityStrExpected);
     if (expected != NULL)
     {
-#ifdef JSON
+#ifdef UNITY_JSON
         UNITY_OUTPUT_CHAR('\"');
 #else
         UNITY_OUTPUT_CHAR('\'');
 #endif
         UnityPrint(expected);
-#ifdef JSON
+#ifdef UNITY_JSON
         UNITY_OUTPUT_CHAR('\"');
 #else
         UNITY_OUTPUT_CHAR('\'');
@@ -382,13 +382,13 @@ void UnityPrintExpectedAndActualStrings(const char* expected, const char* actual
     UnityPrint(UnityStrWas);
     if (actual != NULL)
     {
-#ifdef JSON
+#ifdef UNITY_JSON
         UNITY_OUTPUT_CHAR('\"');
 #else
         UNITY_OUTPUT_CHAR('\'');
 #endif
         UnityPrint(actual);
-#ifdef JSON
+#ifdef UNITY_JSON
         UNITY_OUTPUT_CHAR('\"');
 #else
         UNITY_OUTPUT_CHAR('\'');
@@ -963,7 +963,7 @@ void UnityAssertNumbersWithin( const _U_SINT delta,
     {
         UnityTestResultsFailBegin(lineNumber);
         UnityPrint(UnityStrDelta);
-#ifdef JSON
+#ifdef UNITY_JSON
         UnityPrint(", \"delta\": ");
         UnityPrintNumberByStyle(delta, style);
 #else
@@ -1147,7 +1147,7 @@ void UnityFail(const char* msg, const UNITY_LINE_TYPE line)
     UnityPrintFail();
     if (msg != NULL)
     {
-#ifdef JSON
+#ifdef UNITY_JSON
       UnityPrint(", \"message\": \"");
       UnityPrint(msg);
 #else
@@ -1159,7 +1159,7 @@ void UnityFail(const char* msg, const UNITY_LINE_TYPE line)
       UnityPrint(msg);
 #endif
     }
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("\"} },");
 #endif
     UNITY_FAIL_AND_BAIL;
@@ -1174,7 +1174,7 @@ void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line)
     UnityPrint("IGNORE");
     if (msg != NULL)
     {
-#ifdef JSON
+#ifdef UNITY_JSON
       UnityPrint("\", \"message\": \"");
       UnityPrint(msg);
 #else
@@ -1183,7 +1183,7 @@ void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line)
       UnityPrint(msg);
 #endif
     }
-#ifdef JSON
+#ifdef UNITY_JSON
       UnityPrint("\"} },");
 #endif
     UNITY_IGNORE_AND_BAIL;
@@ -1217,7 +1217,7 @@ void UnityBegin(void)
     Unity.TestIgnores = 0;
     Unity.CurrentTestFailed = 0;
     Unity.CurrentTestIgnored = 0;
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("{\"tests\": ");
     UNITY_PRINT_EOL;
     UnityPrint("[");
@@ -1228,7 +1228,7 @@ void UnityBegin(void)
 //-----------------------------------------------
 int UnityEnd(void)
 {
-#ifdef JSON
+#ifdef UNITY_JSON
     UnityPrint("{}],");
     UNITY_PRINT_EOL;
     UnityPrint("\"summary\": {\"tests\": ");
