@@ -17,6 +17,8 @@
 struct _Unity Unity = { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , { 0 } };
 
 #ifdef UNITY_JSON
+#define UNITY_PRINT_PREFIX    { UNITY_OUTPUT_CHAR('\"'); }
+#define UNITY_PRINT_SUFFIX    { UNITY_OUTPUT_CHAR('\"'); }
 const char* UnityStrNull     = "null";
 const char* UnityStrSpacer   = ". ";
 const char* UnityStrExpected = ", \"expected\": ";
@@ -32,7 +34,7 @@ const char* UnityStrNullPointerForActual  = ", \"reason\": \"Actual pointer was 
 const char* UnityStrInf      = "Infinity";
 const char* UnityStrNegInf   = "Negative Infinity";
 const char* UnityStrNaN      = "NaN";
-const char* UnityStrMsg      = ", \"message\": \"";
+const char* UnityStrMsg      = ", \"message\": ";
 const char* UnityStrDeltaVal = ", \"delta\": ";
 const char* UnityStrTestPrefix  = "{";
 const char* UnityStrTestSuffix  = "} },";
@@ -126,9 +128,7 @@ void UnityPrint(const char* string)
 //-----------------------------------------------
 void UnityPrintNumberByStyle(const _U_SINT number, const UNITY_DISPLAY_STYLE_T style)
 {
-#ifdef UNITY_JSON
-    UnityPrint("\"");
-#endif
+    UNITY_PRINT_PREFIX;
     if ((style & UNITY_DISPLAY_RANGE_INT) == UNITY_DISPLAY_RANGE_INT)
     {
         UnityPrintNumber(number);
@@ -141,9 +141,7 @@ void UnityPrintNumberByStyle(const _U_SINT number, const UNITY_DISPLAY_STYLE_T s
     {
         UnityPrintNumberHex((_U_UINT)number, (style & 0x000F) << 1);
     }
-#ifdef UNITY_JSON
-    UnityPrint("\"");
-#endif
+    UNITY_PRINT_SUFFIX;
 }
 
 //-----------------------------------------------
@@ -233,9 +231,7 @@ void UnityPrintMask(const _U_UINT mask, const _U_UINT number)
     _U_UINT current_bit = (_U_UINT)1 << (UNITY_INT_WIDTH - 1);
     _US32 i;
 
-#ifdef UNITY_JSON
-    UnityPrint("\"");
-#endif
+    UNITY_PRINT_PREFIX;
     for (i = 0; i < UNITY_INT_WIDTH; i++)
     {
         if (current_bit & mask)
@@ -255,9 +251,7 @@ void UnityPrintMask(const _U_UINT mask, const _U_UINT number)
         }
         current_bit = current_bit >> 1;
     }
-#ifdef UNITY_JSON
-    UnityPrint("\"");
-#endif
+    UNITY_PRINT_SUFFIX;
 }
 
 //-----------------------------------------------
@@ -274,11 +268,9 @@ void UnityPrintFloat(_UF number)
 
 void UnityPrintFail(void)
 {
-#ifdef UNITY_JSON
-    UnityPrint("FAIL\"");
-#else
+    UNITY_PRINT_PREFIX;
     UnityPrint("FAIL");
-#endif
+    UNITY_PRINT_SUFFIX;
 }
 
 void UnityPrintOk(void)
@@ -298,7 +290,7 @@ void UnityTestResultsBegin(const char* file, const UNITY_LINE_TYPE line)
     UnityPrintNumber(line);
     UnityPrint(", \"file\": \"");
     UnityPrint(file);
-    UnityPrint("\", \"result\": \"");
+    UnityPrint("\", \"result\": ");
 #else
     UnityPrint(file);
     UNITY_OUTPUT_CHAR(':');
@@ -313,10 +305,11 @@ void UnityTestResultsBegin(const char* file, const UNITY_LINE_TYPE line)
 void UnityTestResultsFailBegin(const UNITY_LINE_TYPE line)
 {
     UnityTestResultsBegin(Unity.TestFile, line);
-#ifdef UNITY_JSON
-    UnityPrint("FAIL\"");
-#else
-    UnityPrint("FAIL:");
+    UNITY_PRINT_PREFIX;
+    UnityPrint("FAIL");
+    UNITY_PRINT_SUFFIX;
+#ifndef UNITY_JSON
+    UNITY_OUTPUT_CHAR(':');
 #endif
 }
 
@@ -330,9 +323,10 @@ void UnityConcludeTest(void)
     else if (!Unity.CurrentTestFailed)
     {
         UnityTestResultsBegin(Unity.TestFile, Unity.CurrentTestLineNumber);
+        UNITY_PRINT_PREFIX;
         UnityPrint("PASS");
+        UNITY_PRINT_SUFFIX;
 #ifdef UNITY_JSON
-        UnityPrint("\"");
         UnityPrint(UnityStrTestSuffix);
 #endif
         UNITY_PRINT_EOL;
@@ -353,12 +347,12 @@ void UnityAddMsgIfSpecified(const char* msg)
     {
 #ifdef UNITY_JSON
         UnityPrint(UnityStrMsg);
-        UnityPrint(msg);
-        UnityPrint("\"");
 #else
         UnityPrint(UnityStrSpacer);
-        UnityPrint(msg);
 #endif
+        UNITY_PRINT_PREFIX;
+        UnityPrint(msg);
+        UNITY_PRINT_SUFFIX;
     }
 #ifdef UNITY_JSON
     UnityPrint(UnityStrTestSuffix);
@@ -371,17 +365,11 @@ void UnityPrintExpectedAndActualStrings(const char* expected, const char* actual
     UnityPrint(UnityStrExpected);
     if (expected != NULL)
     {
-#ifdef UNITY_JSON
-        UNITY_OUTPUT_CHAR('\"');
-#else
+        UNITY_PRINT_PREFIX;
         UNITY_OUTPUT_CHAR('\'');
-#endif
         UnityPrint(expected);
-#ifdef UNITY_JSON
-        UNITY_OUTPUT_CHAR('\"');
-#else
         UNITY_OUTPUT_CHAR('\'');
-#endif
+        UNITY_PRINT_SUFFIX;
     }
     else
     {
@@ -390,17 +378,11 @@ void UnityPrintExpectedAndActualStrings(const char* expected, const char* actual
     UnityPrint(UnityStrWas);
     if (actual != NULL)
     {
-#ifdef UNITY_JSON
-        UNITY_OUTPUT_CHAR('\"');
-#else
+        UNITY_PRINT_PREFIX;
         UNITY_OUTPUT_CHAR('\'');
-#endif
         UnityPrint(actual);
-#ifdef UNITY_JSON
-        UNITY_OUTPUT_CHAR('\"');
-#else
         UNITY_OUTPUT_CHAR('\'');
-#endif
+        UNITY_PRINT_SUFFIX;
     }
     else
     {
@@ -973,10 +955,8 @@ void UnityAssertNumbersWithin( const _U_SINT delta,
         UnityPrint(UnityStrDelta);
 #ifdef UNITY_JSON
         UnityPrint(UnityStrDeltaVal);
-        UnityPrintNumberByStyle(delta, style);
-#else
-        UnityPrintNumberByStyle(delta, style);
 #endif
+        UnityPrintNumberByStyle(delta, style);
         UnityPrint(UnityStrExpected);
         UnityPrintNumberByStyle(expected, style);
         UnityPrint(UnityStrWas);
@@ -1157,18 +1137,18 @@ void UnityFail(const char* msg, const UNITY_LINE_TYPE line)
     {
 #ifdef UNITY_JSON
       UnityPrint(UnityStrMsg);
-      UnityPrint(msg);
 #else
       UNITY_OUTPUT_CHAR(':');
       if (msg[0] != ' ')
       {
         UNITY_OUTPUT_CHAR(' ');  
       }
-      UnityPrint(msg);
 #endif
+      UNITY_PRINT_PREFIX;
+      UnityPrint(msg);
+      UNITY_PRINT_SUFFIX;
     }
 #ifdef UNITY_JSON
-    UnityPrint("\"");
     UnityPrint(UnityStrTestSuffix);
 #endif
     UNITY_FAIL_AND_BAIL;
@@ -1180,21 +1160,22 @@ void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line)
     UNITY_SKIP_EXECUTION;
 
     UnityTestResultsBegin(Unity.TestFile, line);
+    UNITY_PRINT_PREFIX;
     UnityPrint("IGNORE");
+    UNITY_PRINT_SUFFIX;
     if (msg != NULL)
     {
 #ifdef UNITY_JSON
-      UnityPrint("\"");
       UnityPrint(UnityStrMsg);
-      UnityPrint(msg);
 #else
       UNITY_OUTPUT_CHAR(':');
       UNITY_OUTPUT_CHAR(' ');
-      UnityPrint(msg);
 #endif
+      UNITY_PRINT_PREFIX;
+      UnityPrint(msg);
+      UNITY_PRINT_SUFFIX;
     }
 #ifdef UNITY_JSON
-      UnityPrint("\"");
       UnityPrint(UnityStrTestSuffix);
 #endif
     UNITY_IGNORE_AND_BAIL;
