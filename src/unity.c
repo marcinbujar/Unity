@@ -32,6 +32,12 @@ const char* UnityStrNullPointerForActual  = ", \"reason\": \"Actual pointer was 
 const char* UnityStrInf      = "Infinity";
 const char* UnityStrNegInf   = "Negative Infinity";
 const char* UnityStrNaN      = "NaN";
+const char* UnityStrMsg      = ", \"message\": \"";
+const char* UnityStrDeltaVal = ", \"delta\": ";
+const char* UnityStrTestPrefix  = "{";
+const char* UnityStrTestSuffix  = "} },";
+const char* UnityStrSuitePrefix = "{\"tests\": [";
+const char* UnityStrSuiteSuffix = "{}],";
 #else
 const char* UnityStrNull     = "NULL";
 const char* UnityStrSpacer   = ". ";
@@ -284,7 +290,8 @@ void UnityPrintOk(void)
 void UnityTestResultsBegin(const char* file, const UNITY_LINE_TYPE line)
 {
 #ifdef UNITY_JSON
-    UnityPrint("{\"");
+    UnityPrint(UnityStrTestPrefix);
+    UnityPrint("\"");
     UnityPrint(Unity.CurrentTestName);
     UnityPrint("\"");
     UnityPrint(": {\"linenumber\": ");
@@ -325,7 +332,8 @@ void UnityConcludeTest(void)
         UnityTestResultsBegin(Unity.TestFile, Unity.CurrentTestLineNumber);
         UnityPrint("PASS");
 #ifdef UNITY_JSON
-        UnityPrint("\"} },");
+        UnityPrint("\"");
+        UnityPrint(UnityStrTestSuffix);
 #endif
         UNITY_PRINT_EOL;
     }
@@ -344,7 +352,7 @@ void UnityAddMsgIfSpecified(const char* msg)
     if (msg)
     {
 #ifdef UNITY_JSON
-        UnityPrint(", \"message\": \"");
+        UnityPrint(UnityStrMsg);
         UnityPrint(msg);
         UnityPrint("\"");
 #else
@@ -353,7 +361,7 @@ void UnityAddMsgIfSpecified(const char* msg)
 #endif
     }
 #ifdef UNITY_JSON
-    UnityPrint("} },");
+    UnityPrint(UnityStrTestSuffix);
 #endif
 }
 
@@ -964,7 +972,7 @@ void UnityAssertNumbersWithin( const _U_SINT delta,
         UnityTestResultsFailBegin(lineNumber);
         UnityPrint(UnityStrDelta);
 #ifdef UNITY_JSON
-        UnityPrint(", \"delta\": ");
+        UnityPrint(UnityStrDeltaVal);
         UnityPrintNumberByStyle(delta, style);
 #else
         UnityPrintNumberByStyle(delta, style);
@@ -1148,7 +1156,7 @@ void UnityFail(const char* msg, const UNITY_LINE_TYPE line)
     if (msg != NULL)
     {
 #ifdef UNITY_JSON
-      UnityPrint(", \"message\": \"");
+      UnityPrint(UnityStrMsg);
       UnityPrint(msg);
 #else
       UNITY_OUTPUT_CHAR(':');
@@ -1160,7 +1168,8 @@ void UnityFail(const char* msg, const UNITY_LINE_TYPE line)
 #endif
     }
 #ifdef UNITY_JSON
-    UnityPrint("\"} },");
+    UnityPrint("\"");
+    UnityPrint(UnityStrTestSuffix);
 #endif
     UNITY_FAIL_AND_BAIL;
 }
@@ -1175,7 +1184,8 @@ void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line)
     if (msg != NULL)
     {
 #ifdef UNITY_JSON
-      UnityPrint("\", \"message\": \"");
+      UnityPrint("\"");
+      UnityPrint(UnityStrMsg);
       UnityPrint(msg);
 #else
       UNITY_OUTPUT_CHAR(':');
@@ -1184,7 +1194,8 @@ void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line)
 #endif
     }
 #ifdef UNITY_JSON
-      UnityPrint("\"} },");
+      UnityPrint("\"");
+      UnityPrint(UnityStrTestSuffix);
 #endif
     UNITY_IGNORE_AND_BAIL;
 }
@@ -1218,9 +1229,7 @@ void UnityBegin(void)
     Unity.CurrentTestFailed = 0;
     Unity.CurrentTestIgnored = 0;
 #ifdef UNITY_JSON
-    UnityPrint("{\"tests\": ");
-    UNITY_PRINT_EOL;
-    UnityPrint("[");
+    UnityPrint(UnityStrSuitePrefix);
     UNITY_PRINT_EOL;
 #endif
 }
@@ -1229,7 +1238,7 @@ void UnityBegin(void)
 int UnityEnd(void)
 {
 #ifdef UNITY_JSON
-    UnityPrint("{}],");
+    UnityPrint(UnityStrSuiteSuffix);
     UNITY_PRINT_EOL;
     UnityPrint("\"summary\": {\"tests\": ");
     UnityPrintNumber(Unity.NumberOfTests);
