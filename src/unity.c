@@ -17,8 +17,12 @@
 struct _Unity Unity = { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , { 0 } };
 
 #ifdef UNITY_JSON
-#define UNITY_PRINT_PREFIX    { UNITY_OUTPUT_CHAR('\"'); }
-#define UNITY_PRINT_SUFFIX    { UNITY_OUTPUT_CHAR('\"'); }
+#define UNITY_PRINT_PREFIX          { UNITY_OUTPUT_CHAR('\"'); }
+#define UNITY_PRINT_SUFFIX          { UNITY_OUTPUT_CHAR('\"'); }
+#define UNITY_PRINT_TEST_PREFIX     { UnityPrint("{"); }
+#define UNITY_PRINT_TEST_SUFFIX     { UnityPrint("} },"); }
+#define UNITY_PRINT_SUITE_PREFIX    { UnityPrint("{\"tests\": ["); }
+#define UNITY_PRINT_SUITE_SUFFIX    { UnityPrint("{}],"); }
 const char* UnityStrNull     = "null";
 const char* UnityStrSpacer   = ". ";
 const char* UnityStrExpected = ", \"expected\": ";
@@ -36,11 +40,13 @@ const char* UnityStrNegInf   = "Negative Infinity";
 const char* UnityStrNaN      = "NaN";
 const char* UnityStrMsg      = ", \"message\": ";
 const char* UnityStrDeltaVal = ", \"delta\": ";
-const char* UnityStrTestPrefix  = "{";
-const char* UnityStrTestSuffix  = "} },";
-const char* UnityStrSuitePrefix = "{\"tests\": [";
-const char* UnityStrSuiteSuffix = "{}],";
 #else
+#define UNITY_PRINT_PREFIX
+#define UNITY_PRINT_SUFFIX
+#define UNITY_PRINT_TEST_PREFIX
+#define UNITY_PRINT_TEST_SUFFIX
+#define UNITY_PRINT_SUITE_PREFIX
+#define UNITY_PRINT_SUITE_SUFFIX    { UnityPrint("-----------------------"); }
 const char* UnityStrNull     = "NULL";
 const char* UnityStrSpacer   = ". ";
 const char* UnityStrExpected = " Expected ";
@@ -281,8 +287,8 @@ void UnityPrintOk(void)
 //-----------------------------------------------
 void UnityTestResultsBegin(const char* file, const UNITY_LINE_TYPE line)
 {
+    UNITY_PRINT_TEST_PREFIX;
 #ifdef UNITY_JSON
-    UnityPrint(UnityStrTestPrefix);
     UnityPrint("\"");
     UnityPrint(Unity.CurrentTestName);
     UnityPrint("\"");
@@ -326,9 +332,7 @@ void UnityConcludeTest(void)
         UNITY_PRINT_PREFIX;
         UnityPrint("PASS");
         UNITY_PRINT_SUFFIX;
-#ifdef UNITY_JSON
-        UnityPrint(UnityStrTestSuffix);
-#endif
+        UNITY_PRINT_TEST_SUFFIX;
         UNITY_PRINT_EOL;
     }
     else
@@ -354,9 +358,7 @@ void UnityAddMsgIfSpecified(const char* msg)
         UnityPrint(msg);
         UNITY_PRINT_SUFFIX;
     }
-#ifdef UNITY_JSON
-    UnityPrint(UnityStrTestSuffix);
-#endif
+    UNITY_PRINT_TEST_SUFFIX;
 }
 
 //-----------------------------------------------
@@ -1148,9 +1150,7 @@ void UnityFail(const char* msg, const UNITY_LINE_TYPE line)
       UnityPrint(msg);
       UNITY_PRINT_SUFFIX;
     }
-#ifdef UNITY_JSON
-    UnityPrint(UnityStrTestSuffix);
-#endif
+    UNITY_PRINT_TEST_SUFFIX;
     UNITY_FAIL_AND_BAIL;
 }
 
@@ -1175,9 +1175,7 @@ void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line)
       UnityPrint(msg);
       UNITY_PRINT_SUFFIX;
     }
-#ifdef UNITY_JSON
-      UnityPrint(UnityStrTestSuffix);
-#endif
+    UNITY_PRINT_TEST_SUFFIX;
     UNITY_IGNORE_AND_BAIL;
 }
 
@@ -1209,18 +1207,15 @@ void UnityBegin(void)
     Unity.TestIgnores = 0;
     Unity.CurrentTestFailed = 0;
     Unity.CurrentTestIgnored = 0;
-#ifdef UNITY_JSON
-    UnityPrint(UnityStrSuitePrefix);
-    UNITY_PRINT_EOL;
-#endif
+    UNITY_PRINT_SUITE_PREFIX;
 }
 
 //-----------------------------------------------
 int UnityEnd(void)
 {
-#ifdef UNITY_JSON
-    UnityPrint(UnityStrSuiteSuffix);
+    UNITY_PRINT_SUITE_SUFFIX;
     UNITY_PRINT_EOL;
+#ifdef UNITY_JSON
     UnityPrint("\"summary\": {\"tests\": ");
     UnityPrintNumber(Unity.NumberOfTests);
     UnityPrint(", \"failed\": ");
@@ -1231,8 +1226,6 @@ int UnityEnd(void)
     UNITY_PRINT_EOL;
     UnityPrint("}");
 #else
-    UnityPrint("-----------------------");
-    UNITY_PRINT_EOL;
     UnityPrintNumber(Unity.NumberOfTests);
     UnityPrint(" Tests ");
     UnityPrintNumber(Unity.TestFailures);
